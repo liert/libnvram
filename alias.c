@@ -3,11 +3,11 @@
 
 /* Aliased base functions */
 
-int true() {
+int _true_() {
     return E_SUCCESS;
 }
 
-int false() {
+int _false_() {
     return E_FAILURE;
 }
 
@@ -104,7 +104,7 @@ int nvram_nmatch(const char *val, const char *fmt, ...) {
     return nvram_match(temp, val);
 }
 
-int get_default_mac() __attribute__ ((alias ("true")));
+int get_default_mac() __attribute__ ((alias ("_true_")));
 
 /* D-Link */
 
@@ -112,25 +112,25 @@ char *artblock_get(const char *key) __attribute__ ((alias ("nvram_get")));
 char *artblock_fast_get(const char *key) __attribute__ ((alias ("nvram_safe_get")));
 char *artblock_safe_get(const char *key) __attribute__ ((alias ("nvram_safe_get")));
 int artblock_set(const char *key, const char *val) __attribute__ ((alias ("nvram_set")));
-int nvram_flag_set(int unk) __attribute__ ((alias ("true")));
-int nvram_flag_reset(int unk) __attribute__ ((alias ("true")));
+int nvram_flag_set(int unk) __attribute__ ((alias ("_true_")));
+int nvram_flag_reset(int unk) __attribute__ ((alias ("_true_")));
 
 /* D-Link ARM */
-int nvram_master_init() __attribute__ ((alias ("false")));
-int nvram_slave_init() __attribute__ ((alias ("false")));
+int nvram_master_init() __attribute__ ((alias ("_false_")));
+int nvram_slave_init() __attribute__ ((alias ("_false_")));
 
 /* Realtek */
 // These functions expect integer keys, so we convert to string first.
 // Unfortunately, this implementation is not entirely correct because some
 // values are integers and others are string, but we treat all as integers.
-int apmib_init() __attribute__ ((alias ("true")));
-int apmib_reinit() __attribute__ ((alias ("true")));
-// int apmib_hwconf() __attribute__ ((alias ("true")));
-// int apmib_dsconf() __attribute__ ((alias ("true")));
-// int apmib_load_hwconf() __attribute__ ((alias ("true")));
-// int apmib_load_dsconf() __attribute__ ((alias ("true")));
-// int apmib_load_csconf() __attribute__ ((alias ("true")));
-int apmib_update(const int key) __attribute__((alias ("true")));
+int apmib_init() __attribute__ ((alias ("_true_")));
+int apmib_reinit() __attribute__ ((alias ("_true_")));
+// int apmib_hwconf() __attribute__ ((alias ("_true_")));
+// int apmib_dsconf() __attribute__ ((alias ("_true_")));
+// int apmib_load_hwconf() __attribute__ ((alias ("_true_")));
+// int apmib_load_dsconf() __attribute__ ((alias ("_true_")));
+// int apmib_load_csconf() __attribute__ ((alias ("_true_")));
+int apmib_update(const int key) __attribute__((alias ("_true_")));
 
 int apmib_get(const int key, void *buf) {
     int res;
@@ -200,9 +200,9 @@ int nvram_set_adv(int unk, const char *key, const char *val) {
 }
 
 int nvram_commit_adv(int) __attribute__ ((alias ("nvram_commit")));
-int nvram_unlock_adv(int) __attribute__ ((alias ("true")));
-int nvram_lock_adv(int) __attribute__ ((alias ("true")));
-int nvram_check(void) __attribute__ ((alias ("true")));
+int nvram_unlock_adv(int) __attribute__ ((alias ("_true_")));
+int nvram_lock_adv(int) __attribute__ ((alias ("_true_")));
+int nvram_check(void) __attribute__ ((alias ("_true_")));
 
 int nvram_state(int unk1, void *unk2, void *unk3) {
     return E_FAILURE;
