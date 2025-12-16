@@ -404,10 +404,93 @@ int nvram_get_buf(const char *key, char *buf, size_t sz) {
     return E_SUCCESS;
 }
 
+// int nvram_get_int(const char *key) {
+//     char path[PATH_MAX] = MOUNT_POINT;
+//     FILE *f;
+//     int ret;
+
+//     if (!key) {
+//         PRINT_MSG("%s\n", "NULL key!");
+//         return E_FAILURE;
+//     }
+
+//     PRINT_MSG("%s\n", key);
+
+//     strncat(path, key, ARRAY_SIZE(path) - ARRAY_SIZE(MOUNT_POINT) - 1);
+
+//     sem_lock();
+
+//     if ((f = fopen(path, "rb")) == NULL) {
+//         sem_unlock();
+//         PRINT_MSG("Unable to open key: %s!\n", path);
+//         return E_FAILURE;
+//     }
+
+//     if (fread(&ret, sizeof(ret), 1, f) != 1) {
+//         fclose(f);
+//         sem_unlock();
+//         PRINT_MSG("Unable to read key: %s!\n", path);
+//         return E_FAILURE;
+//     }
+//     fclose(f);
+//     sem_unlock();
+
+//     PRINT_MSG("= %d\n", ret);
+
+//     return ret;
+// }
+
+// ASUS
+// 手动将字符串转为 int，仅支持十进制，可处理负号
+static int parse_int(const char *s, int *out) {
+    if (!s || !out) return -1;
+
+    // 跳过前导空白（空格、\t）
+    while (*s == ' ' || *s == '\t') s++;
+
+    int neg = 0;
+    if (*s == '-') {
+        neg = 1;
+        s++;
+    } else if (*s == '+') {
+        s++;
+    }
+
+    // 必须至少有一个数字
+    if (*s < '0' || *s > '9') return -1;
+
+    unsigned int val = 0;
+    const unsigned int MAX_ABS = (unsigned int)INT_MAX + (neg ? 1 : 0); // 处理 INT_MIN
+
+    while (*s >= '0' && *s <= '9') {
+        unsigned int digit = (unsigned int)(*s - '0');
+        if (val > (MAX_ABS - digit) / 10) {
+            return -1; // 溢出
+        }
+        val = val * 10 + digit;
+        s++;
+    }
+
+    // 允许尾随 \n, \r, 空格（NVRAM 文件常见）
+    while (*s == ' ' || *s == '\t' || *s == '\n' || *s == '\r') s++;
+
+    if (*s != '\0') return -1; // 非法字符
+
+    if (neg) {
+        if (val > (unsigned int)INT_MAX + 1) return -1; // 超出 INT_MIN
+        *out = -(int)val;
+    } else {
+        if (val > (unsigned int)INT_MAX) return -1;
+        *out = (int)val;
+    }
+    return 0;
+}
+
 int nvram_get_int(const char *key) {
     char path[PATH_MAX] = MOUNT_POINT;
     FILE *f;
-    int ret;
+    char buf[64];
+    int value;
 
     if (!key) {
         PRINT_MSG("%s\n", "NULL key!");
@@ -420,13 +503,13 @@ int nvram_get_int(const char *key) {
 
     sem_lock();
 
-    if ((f = fopen(path, "rb")) == NULL) {
+    if ((f = fopen(path, "r")) == NULL) {
         sem_unlock();
         PRINT_MSG("Unable to open key: %s!\n", path);
         return E_FAILURE;
     }
 
-    if (fread(&ret, sizeof(ret), 1, f) != 1) {
+    if (!fgets(buf, sizeof(buf), f)) {
         fclose(f);
         sem_unlock();
         PRINT_MSG("Unable to read key: %s!\n", path);
@@ -435,9 +518,19 @@ int nvram_get_int(const char *key) {
     fclose(f);
     sem_unlock();
 
-    PRINT_MSG("= %d\n", ret);
+    // 移除换行符（可选，parse_int 也能处理）
+    char *p = buf;
+    size_t len = strlen(p);
+    if (len > 0 && p[len - 1] == '\n')
+        p[len - 1] = '\0';
 
-    return ret;
+    if (parse_int(buf, &value) != 0) {
+        PRINT_MSG("Invalid integer in '%s': '%s'\n", path, buf);
+        return E_FAILURE;
+    }
+
+    PRINT_MSG("= %d\n", value);
+    return value;
 }
 
 int nvram_getall(char *buf, size_t len) {
@@ -700,6 +793,60 @@ int nvram_commit(void) {
     sem_unlock();
 
     return E_SUCCESS;
+}
+
+// ASUS
+char *wlcsm_trim_str(char *str) {
+    if (!str || !*str)
+        return str;
+
+    int len = strlen(str);
+    while (len > 0) {
+        char c = str[len - 1];
+        if (c == ' ' || c == '\n') {
+            len--;
+        } else {
+            break;
+        }
+    }
+    str[len] = '\0';
+    
+    while (*str == ' ' || *str == '\n') {
+        str++;
+    }
+    
+    return str;
+}
+
+char *wlcsm_trim_str2(char *str)
+{
+    if (!str || !*str)
+        return str;
+
+    size_t len = strlen(str);
+
+    while (len > 0 && str[len - 1] == '\n') {
+        len--;
+    }
+
+    str[len] = '\0';
+
+    return str;
+}
+
+char *wlcsm_nvram_get(char *key)
+{
+    PRINT_MSG("Unable to read key: %s!\n", key);
+
+    if (!key)
+        return NULL;
+
+    return nvram_get(key);
+}
+
+char *nvram_get_salt(void)
+{
+    return wlcsm_nvram_get("nvram_salt");
 }
 
 // Hack to use static variables in shared library
