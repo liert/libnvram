@@ -152,7 +152,7 @@ static void sem_unlock() {
         .sem_flg = SEM_UNDO,
     };
 
-    if ((semid = sem_get(NULL)) == -1) {
+    if ((semid = sem_get()) == -1) {
         PRINT_MSG("%s\n", "Unable to get semaphore!");
         return;
     }
