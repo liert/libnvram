@@ -1,6 +1,7 @@
 CC = arm-linux-gnueabi-gcc
+# CC = arm-linux-gnueabihf-gcc
 
-CFLAGS=-O2 -fPIC -Wall
+CFLAGS=-O2 -fPIC -Wall -U_FILE_OFFSET_BITS -U_TIME_BITS # -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=softfp
 LDFLAGS=-shared -nostdlib
 
 OBJECTS=$(SOURCES:.c=.o)
