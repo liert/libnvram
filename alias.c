@@ -174,6 +174,7 @@ int acos_nvram_commit(void) __attribute__ ((alias ("nvram_commit")));
 
 int acosNvramConfig_init(char *mount) __attribute__ ((alias ("nvram_init")));
 char *acosNvramConfig_get(const char *key) __attribute__ ((alias ("nvram_get")));
+char *acosNvramConfig_exist(const char *key) __attribute__ ((alias ("nvram_get")));
 int acosNvramConfig_read (const char *key, char *buf, size_t sz) __attribute__ ((alias ("nvram_get_buf")));
 int acosNvramConfig_set(const char *key, const char *val) __attribute__ ((alias ("nvram_set")));
 int acosNvramConfig_write(const char *key, const char *val) __attribute__ ((alias ("nvram_set")));
@@ -183,6 +184,123 @@ int acosNvramConfig_invmatch(const char *key, const char *val) __attribute__ ((a
 int acosNvramConfig_save(void) __attribute__ ((alias ("nvram_commit")));
 int acosNvramConfig_save_config(void) __attribute__ ((alias ("nvram_commit")));
 int acosNvramConfig_loadFactoryDefault(const char* key);
+
+/* Netgear ACOS R8000P */
+
+int acos_atoi(const char *s) {
+    int neg = 0;
+    int result;
+    char c;
+
+    if (!s)
+        return 0;
+
+    /* 跳过空格 */
+    while (*s == ' ')
+        s++;
+
+    /* 处理符号 */
+    if (*s == '+') {
+        s++;
+    } else if (*s == '-') {
+        neg = 1;
+        s++;
+    }
+
+    /* 首字符必须是数字 */
+    c = *s;
+    if ((unsigned)(c - '0') > 9)
+        return 0;
+
+    /* 用负数方式累加 */
+    result = '0' - c;
+    s++;
+
+    while (1) {
+        c = *s;
+        if ((unsigned)(c - '0') > 9)
+            break;
+        result = result * 10 + ('0' - c);
+        s++;
+    }
+
+    if (!neg)
+        return -result;
+    return result;
+}
+
+int sync_essential_values(int index) {
+  int idx;
+  char s[64];
+
+  idx = index - 1;
+  sprintf(s, "wl0.%d_%s", idx, "infra");
+  nvram_set(s, "1");
+  sprintf(s, "wl0.%d_%s", idx, "mode");
+  nvram_set(s, "ap");
+  sprintf(s, "wl0.%d_%s", idx, "radio");
+  nvram_set(s, "1");
+  sprintf(s, "wl1.%d_%s", idx, "infra");
+  nvram_set(s, "1");
+  sprintf(s, "wl1.%d_%s", idx, "mode");
+  nvram_set(s, "ap");
+  sprintf(s, "wl1.%d_%s", idx, "radio");
+  nvram_set(s, "1");
+  sprintf(s, "wl2.%d_%s", idx, "infra");
+  nvram_set(s, "1");
+  sprintf(s, "wl2.%d_%s", idx, "mode");
+  nvram_set(s, "ap");
+  sprintf(s, "wl2.%d_%s", idx, "radio");
+  nvram_set(s, "1");
+  return 0;
+}
+
+int acosNvramConfig_setPAParam(int result) {
+  char *v1;
+
+  if ( result )
+  {
+    if ( result != 1 )
+      return result;
+    acosNvramConfig_set("maxp2ga0", "0x42");
+    acosNvramConfig_set("maxp2ga1", "0x42");
+    acosNvramConfig_set("cck2gpo", "0x2222");
+    acosNvramConfig_set("ofdm2gpo", "0x88888888");
+    acosNvramConfig_set("mcs2gpo0", "0x8888");
+    acosNvramConfig_set("mcs2gpo1", "0x8888");
+    acosNvramConfig_set("mcs2gpo2", "0x8888");
+    acosNvramConfig_set("mcs2gpo3", "0x8888");
+    acosNvramConfig_set("mcs2gpo4", "0x8888");
+    acosNvramConfig_set("mcs2gpo5", "0x8888");
+    acosNvramConfig_set("mcs2gpo6", "0x8888");
+    acosNvramConfig_set("mcs2gpo7", "0x8888");
+    acosNvramConfig_set("ccode", "0");
+    v1 = "0";
+  }
+  else
+  {
+    acosNvramConfig_set("maxp2ga0", "0x5C");
+    acosNvramConfig_set("maxp2ga1", "0x5C");
+    acosNvramConfig_set("cck2gpo", "0x3333");
+    acosNvramConfig_set("ofdm2gpo", "0x75533333");
+    acosNvramConfig_set("mcs2gpo0", "0x5553");
+    acosNvramConfig_set("mcs2gpo1", "0xb755");
+    acosNvramConfig_set("mcs2gpo2", "0x7553");
+    acosNvramConfig_set("mcs2gpo3", "0xffd9");
+    acosNvramConfig_set("mcs2gpo4", "0x9666");
+    acosNvramConfig_set("mcs2gpo5", "0xffdb");
+    acosNvramConfig_set("mcs2gpo6", "0x9766");
+    acosNvramConfig_set("mcs2gpo7", "0xffdb");
+    acosNvramConfig_set("ccode", "US");
+    v1 = "14";
+  }
+  return acosNvramConfig_set("regrev", v1);
+}
+
+void acosNvramConfig_readAsInt(const char* key, int* value) {
+    char* string_value = nvram_get(key);
+    *value = acos_atoi(string_value);
+}
 
 /* ZyXel / Edimax */
 // many functions expect the opposite return values: (0) success, failure (1/-1)
