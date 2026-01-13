@@ -63,7 +63,7 @@ static int sem_get() {
         return -1;
     }
 
-    PRINT_MSG("Key: %x\n", key);
+    // PRINT_MSG("Key: %x\n", key);
 
     // Get the semaphore using the key
     if ((semid = semget(key, 1, IPC_CREAT | IPC_EXCL | 0666)) >= 0) {

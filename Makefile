@@ -2,7 +2,7 @@ CC = arm-linux-gnueabi-gcc
 # CC = arm-linux-gnueabihf-gcc
 
 # x86
-CFLAGS=-O2 -fPIC -Wall -U_FILE_OFFSET_BITS -U_TIME_BITS # -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=softfp
+CFLAGS=-O2 -fPIC -Wall -U_FILE_OFFSET_BITS -U_TIME_BITS -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=softfp
 # x64
 # CFLAGS=-O2 -fPIC -Wall # -mcpu=cortex-a9 -mfpu=vfpv3 -mfloat-abi=softfp
 LDFLAGS=-shared -nostdlib
